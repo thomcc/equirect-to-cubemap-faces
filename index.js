@@ -53,7 +53,7 @@ var equirectToCubemapFaces = (function() {
 						case 5: x = -1.0;    y = 1.0 - a; z = 1.0 - b; break; // back   (-z)
 					}
 
-					var theta = atan2(y, x);
+					var theta = -atan2(y, x);
 					var r = sqrt(x*x+y*y);
 					var phi = atan2(z, r);
 
