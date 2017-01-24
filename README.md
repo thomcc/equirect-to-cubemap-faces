@@ -8,6 +8,7 @@ Works in the browser or as a commonjs module. Provides a single function `equire
 
 Usage example: [see on codepen](http://codepen.io/thomcc/pen/YqXQoo/)
 
+```js
 function loadImage(src) {
 	return new Promise(function(resolve, reject) {
 		var i = new Image();
@@ -24,6 +25,7 @@ loadImage(myImageURL)
 		document.body.appendChild(c);
 	});
 });
+```
 
 TODO: support for running this outside the browser (the function that does the bulk of the work already supports this...).
 
