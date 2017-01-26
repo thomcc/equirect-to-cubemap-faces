@@ -55,7 +55,7 @@ var equirectToCubemapFaces = (function() {
 
 					var theta = -atan2(y, x);
 					var rad = sqrt(x*x+y*y);
-					var phi = atan2(z, r);
+					var phi = atan2(z, rad);
 
 					var uf = 2.0 * faceWidth * (theta + PI) / PI;
 					var vf = 2.0 * faceHeight * (PI/2 - phi) / PI;
@@ -74,7 +74,7 @@ var equirectToCubemapFaces = (function() {
 					var rC = srgbToLinear(inData[pC+0]|0), gC = srgbToLinear(inData[pC+1]|0), bC = srgbToLinear(inData[pC+2]|0), aC = (inData[pC+3]|0)*(1.0 / 255.0);
 					var rD = srgbToLinear(inData[pD+0]|0), gD = srgbToLinear(inData[pD+1]|0), bD = srgbToLinear(inData[pD+2]|0), aD = (inData[pD+3]|0)*(1.0 / 255.0);
 
-					var r = (rA*(1.0-mu)*(1.0-nu) + rB*mu*(1.0-nu) + rC*(1.0-mu)*nu + rD*mu*nu);
+ 					var r = (rA*(1.0-mu)*(1.0-nu) + rB*mu*(1.0-nu) + rC*(1.0-mu)*nu + rD*mu*nu);
 					var g = (gA*(1.0-mu)*(1.0-nu) + gB*mu*(1.0-nu) + gC*(1.0-mu)*nu + gD*mu*nu);
 					var b = (bA*(1.0-mu)*(1.0-nu) + bB*mu*(1.0-nu) + bC*(1.0-mu)*nu + bD*mu*nu);
 					var a = (aA*(1.0-mu)*(1.0-nu) + aB*mu*(1.0-nu) + aC*(1.0-mu)*nu + aD*mu*nu);
