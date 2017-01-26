@@ -57,8 +57,8 @@ var equirectToCubemapFaces = (function() {
 					var rad = sqrt(x*x+y*y);
 					var phi = atan2(z, rad);
 
-					var uf = 2.0 * faceWidth * (theta + PI) / PI;
-					var vf = 2.0 * faceHeight * (PI/2 - phi) / PI;
+					var uf = 2.0 * (inWidth / 4) * (theta + PI) / PI;
+					var vf = 2.0 * (inWidth / 4) * (PI/2 - phi) / PI;
 
 					var ui = floor(uf), vi = floor(vf);
 					var u2 = ui+1, v2 = vi+1;
