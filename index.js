@@ -2,7 +2,7 @@ var equirectToCubemapFaces = (function() {
 	'use strict';
 
 	var min = Math.min, max = Math.max;
-	var pow = Math.pow, atan2 = Math.atan2, sqrt = Math.sqrt, atan2 = Math.atan2, log = Math.log;
+	var pow = Math.pow, atan2 = Math.atan2, sqrt = Math.sqrt, log = Math.log;
 	var floor = Math.floor, round = Math.round;
 	var PI = +Math.PI;
 
