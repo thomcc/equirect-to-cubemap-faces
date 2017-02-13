@@ -26,7 +26,7 @@ var equirectToCubemapFaces = (function() {
 	}
 	// this function is a bit awkward so that eventually I can support doing this offline (note that
 	// this function doesn't depend on anything in the DOM).
-	equirectToCubemapFaces.transformToCubeFaces = function(inPixels, facePixArray) {
+	function transformToCubeFaces(inPixels, facePixArray) {
 		if (facePixArray.length !== 6) {
 			throw new Error("facePixArray length must be 6!");
 		}
@@ -129,7 +129,7 @@ var equirectToCubemapFaces = (function() {
 			faces.push(c);
 		}
 
-		this.transformToCubeFaces(inPixels, faces.map(function(canv) {
+		transformToCubeFaces(inPixels, faces.map(function(canv) {
 			return canv.getContext('2d').createImageData(canv.width, canv.height);
 		}))
 		.forEach(function(imageData, i) {
@@ -137,6 +137,8 @@ var equirectToCubemapFaces = (function() {
 		});
 		return faces;
 	}
+
+	equirectToCubemapFaces.transformToCubeFaces = transformToCubeFaces;
 
 	return equirectToCubemapFaces;
 }());
