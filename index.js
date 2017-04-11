@@ -45,8 +45,8 @@ var equirectToCubemapFaces = (function() {
 					var a = 2.0 * i / faceWidth;
 					var b = 2.0 * j / faceHeight;
 					switch (face) {
-						case 0: x = 1.0 - a; y = -1.0;     z = 1.0 - b; break; // right  (+x)
-						case 1: x = a - 1.0; y = 1.0;    z = 1.0 - b; break; // left   (-x)
+						case 0: x = 1.0 - a; y = -1.0;    z = 1.0 - b; break; // right  (+x)
+						case 1: x = a - 1.0; y = 1.0;     z = 1.0 - b; break; // left   (-x)
 						case 2: x = b - 1.0; y = 1.0 - a; z = 1.0;     break; // top    (+y)
 						case 3: x = 1.0 - b; y = 1.0 - a; z = -1.0;    break; // bottom (-y)
 						case 4: x = 1.0;     y = 1.0 - a; z = 1.0 - b; break; // front  (+z)
