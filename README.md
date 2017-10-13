@@ -10,6 +10,8 @@ The options are optional,  and only support a single option, which is only provi
 
 - `option.flipTheta`: Defaults to false. Previous versions of the library had a math error that caused the Y axis to be flipped in many cases (or really, the theta axis of the coordinate system used). For compatibility I've provided an option to recreate this behavior, which isn't really correct but might be useful in some scenarios depending on your shaders. If you set it to true, you opt into this behavior.
 
+The result of this call is an array containing the faces the faces in the following order: `+x, -x, +y, -y, +z, -z`. Depending on your coordinate system this is probably right, left, top, bottom, front, back.
+
 Usage example: [see on codepen](http://codepen.io/thomcc/pen/YqXQoo/)
 
 ```js
