@@ -24,12 +24,20 @@ var equirectToCubemapFaces = (function() {
 	function nearestPowerOfTwo(n) {
 		return 1 << round(log(n)/log(2))
 	}
+	var DEFAULT_OPTIONS = {
+		flipTheta: false
+	};
+
 	// this function is a bit awkward so that eventually I can support doing this offline (note that
 	// this function doesn't depend on anything in the DOM).
-	function transformToCubeFaces(inPixels, facePixArray) {
+	function transformToCubeFaces(inPixels, facePixArray, options) {
 		if (facePixArray.length !== 6) {
 			throw new Error("facePixArray length must be 6!");
 		}
+		if (!options) {
+			options = DEFAULT_OPTIONS;
+		}
+		var thetaFlip = options.flipTheta ? -1 : 1;
 		var edge = facePixArray[0].width|0;
 		var inWidth = inPixels.width|0;
 		var inHeight = inPixels.height|0;
@@ -53,7 +61,7 @@ var equirectToCubemapFaces = (function() {
 						case 5: x = -1.0;    y = 1.0 - a; z = 1.0 - b; break; // back   (-z)
 					}
 
-					var theta = -atan2(y, x);
+					var theta = thetaFlip * atan2(y, x);
 					var rad = sqrt(x*x+y*y);
 					var phi = atan2(z, rad);
 
@@ -91,7 +99,6 @@ var equirectToCubemapFaces = (function() {
 		return facePixArray;
 	}
 
-
 	function imageGetPixels(image) {
 		if (image.data) {
 			return image;
@@ -110,7 +117,7 @@ var equirectToCubemapFaces = (function() {
 		return ctx.getImageData(0, 0, canvas.width, canvas.height);
 	}
 
-	function equirectToCubemapFaces(image, faceSize) {
+	function equirectToCubemapFaces(image, faceSize, options) {
 		var inPixels = imageGetPixels(image);
 
 		if (!faceSize) {
@@ -131,7 +138,7 @@ var equirectToCubemapFaces = (function() {
 
 		transformToCubeFaces(inPixels, faces.map(function(canv) {
 			return canv.getContext('2d').createImageData(canv.width, canv.height);
-		}))
+		}), options)
 		.forEach(function(imageData, i) {
 			faces[i].getContext('2d').putImageData(imageData, 0, 0);
 		});
