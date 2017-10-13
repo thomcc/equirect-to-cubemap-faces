@@ -4,7 +4,11 @@ Function that convert an equirectangular/latlong map into an array of cubemap fa
 
 ## Usage
 
-Works in the browser or as a commonjs module. Provides a single function `equirectToCubemapFaces(image, faceSize)`. The face size is optional, and defaults to the nearest power of two to image.width/4 (this is totally arbitrary). The `image` argument can be an img element, a canvas, or an ImageData.
+Works in the browser or as a commonjs module. Provides a single function `equirectToCubemapFaces(image, faceSize, options)`. The face size is optional, and defaults to the nearest power of two to image.width/4 (this is totally arbitrary). The `image` argument can be an img element, a canvas, or an ImageData.
+
+The options are optional,  and only support a single option, which is only provided for legacy compatibility.
+
+- `option.flipTheta`: Defaults to false. Previous versions of the library had a math error that caused the Y axis to be flipped in many cases (or really, the theta axis of the coordinate system used). For compatibility I've provided an option to recreate this behavior, which isn't really correct but might be useful in some scenarios depending on your shaders. If you set it to true, you opt into this behavior.
 
 Usage example: [see on codepen](http://codepen.io/thomcc/pen/YqXQoo/)
 
