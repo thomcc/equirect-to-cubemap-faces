@@ -25,7 +25,8 @@ var equirectToCubemapFaces = (function() {
 		return 1 << round(log(n)/log(2))
 	}
 	var DEFAULT_OPTIONS = {
-		flipTheta: false
+		flipTheta: false,
+		selectedFaces: Array('r','l','u','d','f','b')
 	};
 
 	// this function is a bit awkward so that eventually I can support doing this offline (note that
@@ -38,6 +39,7 @@ var equirectToCubemapFaces = (function() {
 			options = DEFAULT_OPTIONS;
 		}
 		var thetaFlip = options.flipTheta ? -1 : 1;
+		var selectedFaces = options.selectedFaces;
 		var edge = facePixArray[0].width|0;
 		var inWidth = inPixels.width|0;
 		var inHeight = inPixels.height|0;
@@ -52,13 +54,13 @@ var equirectToCubemapFaces = (function() {
 					var x = 0.0, y = 0.0, z = 0.0;
 					var a = 2.0 * i / faceWidth;
 					var b = 2.0 * j / faceHeight;
-					switch (face) {
-						case 0: x = 1.0 - a; y = 1.0;     z = 1.0 - b; break; // right  (+x)
-						case 1: x = a - 1.0; y = -1.0;    z = 1.0 - b; break; // left   (-x)
-						case 2: x = b - 1.0; y = a - 1.0; z = 1.0;     break; // top    (+y)
-						case 3: x = 1.0 - b; y = a - 1.0; z = -1.0;    break; // bottom (-y)
-						case 4: x = 1.0;     y = a - 1.0; z = 1.0 - b; break; // front  (+z)
-						case 5: x = -1.0;    y = 1.0 - a; z = 1.0 - b; break; // back   (-z)
+					switch (selectedFaces[face]) {
+						case 'r': x = 1.0 - a; y = 1.0;     z = 1.0 - b; break; // right  		(+x)
+						case 'l': x = a - 1.0; y = -1.0;    z = 1.0 - b; break; // left   		(-x)
+						case 'u': x = b - 1.0; y = a - 1.0; z = 1.0;     break; // top/up/		(+y)
+						case 'd': x = 1.0 - b; y = a - 1.0; z = -1.0;    break; // bottom/down/		(-y)
+						case 'f': x = 1.0;     y = a - 1.0; z = 1.0 - b; break; // front  		(+z)
+						case 'b': x = -1.0;    y = 1.0 - a; z = 1.0 - b; break; // back   		(-z)
 					}
 
 					var theta = thetaFlip * atan2(y, x);
