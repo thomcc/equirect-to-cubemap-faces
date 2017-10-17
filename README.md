@@ -33,7 +33,66 @@ loadImage(myImageURL)
 });
 ```
 
-TODO: support for running this outside the browser (the function that does the bulk of the work already supports this...).
+There are two additional functions exposed on the `equirectToCubemapFaces` function object.
+
+
+- `equirectToCubemapFaces.transformSingleFace(inPixels, faceIdx, facePixels, options)`: Computes a single cubemap face.
+    - `faceIdx` should be 0, 1, 2, 3, 4, or 5. Cooresponds to a face in the documented order, e.g. `+x, -x, +y, -y, +z, -z`.
+    - `facePixels` should be an ImageData object where we should store the result.
+    - `inPixels` should also be an ImageData object containing the source pixels.
+    - `options` are the same options that are accepted by `equirectToCubemapFaces`. They're optional.
+
+
+- `equirectToCubemapFaces.transformToCubeFaces(inPixels, facePixArray, options)`: Computes an array of cubemap faces. Just calls `transformSingleFace` in a loop for each facePixArray.
+    - `inPixels`: Input image as an ImageData.
+    - `facePixArray`: Array of 6 ImageData objects where the results should be stored.
+    - `options`: Same options as `equirectToCubemapFaces`.
+
+Another (much more involved) example, this one computing each face without too much jank.
+
+```javascript
+// boilerplate functions you probably already have around.
+function makeCanvas(width, height) {
+	let canvas = document.createElement("canvas");
+	canvas.width = i.naturalWidth || i.width;
+	canvas.height = i.naturalHeight || i.height;
+	return canvas;
+}
+
+function loadImageIntoCanvas(src) {
+	return new Promise(function(resolve, reject) {
+		let i = new Image();
+		i.onload = function() {
+			let canvas = makeCanvas(i.width, i.height);
+			let ctx = canvas.getContext('2d');
+			ctx.drawImage(i, 0, 0);
+			resolve(canvas);
+		}
+		i.onerror = reject;
+		i.src = src;
+	});
+}
+
+// Adds all the faces to the page without blocking the event loop for more than
+// the amount of time it takes to compute a single face.
+// Calls onComputedCubemapFace(faceIndex, faceImageData) at each step, and
+// resolves to an array of the imageDatas.
+async function computeCubemapFacesAsync(imageURL, desiredFaceSize, onComputedCubemapFace) {
+	let inCanvas = await loadImageIntoCanvas(imageURL);
+	let inCtx = inCanvas.getContext("2d");
+	let imageData = inCtx.getImageData(0, 0, inCanvas.width, inCanvas.height);
+	let result = [];
+	for (let faceIndex = 0; faceIndex < 6; ++faceIndex) {
+		let facePixels = new ImageData(desiredFaceSize, desiredFaceSize);
+		equirectToCubemapFaces.transformSingleFace(inPixels, faceIndex, facePixels)
+		onComputedCubemapFace(faceIndex, facePixels);
+		result.push(facePixels);
+		// wait about 16ms
+		await new Promise(resolve => requestAnimationFrame(resolve));
+	}
+	return result;
+}
+```
 
 ## License
 
