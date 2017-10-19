@@ -6,9 +6,11 @@ Function that convert an equirectangular/latlong map into an array of cubemap fa
 
 Works in the browser or as a commonjs module. Provides a single function `equirectToCubemapFaces(image, faceSize, options)`. The face size is optional, and defaults to the nearest power of two to image.width/4 (this is totally arbitrary). The `image` argument can be an img element, a canvas, or an ImageData.
 
-The options are optional,  and only support a single option, which is only provided for legacy compatibility.
+The options argument is optional, and supports the following parameters:
 
-- `option.flipTheta`: Defaults to false. Previous versions of the library had a math error that caused the Y axis to be flipped in many cases (or really, the theta axis of the coordinate system used). For compatibility I've provided an option to recreate this behavior, which isn't really correct but might be useful in some scenarios depending on your shaders. If you set it to true, you opt into this behavior.
+- `option.interpolation`: Either `"nearest"` or `"bilinear"`. Defaults to `"bilinear"`. Specifies whether to use nearest-neighbor interpolation (e.g. pixelated) or bilinear interpolation (e.g. smooth) when generating the cubemap faces.
+	- Note that if bilinear interpolation is used, we perform the blending in linear space (e.g. we assume sRGB input). Someday this may be configurable.
+- `option.flipTheta`: Provided for legacy compatibility, defaults to false. Previous versions of the library had a math error that caused the Y axis to be flipped in many cases (or really, the theta axis of the coordinate system used). For compatibility I've provided an option to recreate this behavior, which isn't really correct but might be useful in some scenarios depending on your shaders. If you set it to true, you opt into this behavior.
 
 The result of this call is an array containing the faces the faces in the following order: `+x, -x, +y, -y, +z, -z`. Depending on your coordinate system this is probably right, left, top, bottom, front, back.
 

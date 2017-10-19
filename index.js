@@ -24,7 +24,8 @@ var equirectToCubemapFaces = (function() {
 		return 1 << round(log(n)/log(2))
 	}
 	var DEFAULT_OPTIONS = {
-		flipTheta: false
+		flipTheta: false,
+		interpolation: "bilinear",
 	};
 
 	function transformSingleFace(inPixels, faceIdx, facePixels, opts) {
@@ -38,6 +39,8 @@ var equirectToCubemapFaces = (function() {
 		var inHeight = inPixels.height|0;
 		var inData = inPixels.data;
 
+		var smoothNearest = (opts.interpolation === "nearest");
+
 		var faceData = facePixels.data;
 		var faceWidth = facePixels.width|0;
 		var faceHeight = facePixels.height|0;
@@ -50,10 +53,11 @@ var equirectToCubemapFaces = (function() {
 			for (var i = 0; i < faceWidth; ++i) {
 				var a = iFaceWidth2 * i;
 				var b = iFaceHeight2 * j;
-
+				var outPos = (i + j * edge) << 2;
 				var x = 0.0, y = 0.0, z = 0.0;
 				// @@NOTE: Tried using explicit matrices for this and didn't see any
-				// speedup over the (IMO more understandable) switch.
+				// speedup over the (IMO more understandable) switch. (Probably because these
+				// branches should be correctly predicted almost every time).
 				switch (face) {
 					case 0: x = 1.0 - a; y = 1.0;     z = 1.0 - b; break; // right  (+x)
 					case 1: x = a - 1.0; y = -1.0;    z = 1.0 - b; break; // left   (-x)
@@ -69,39 +73,44 @@ var equirectToCubemapFaces = (function() {
 
 				var uf = 2.0 * (inWidth / 4) * (theta + PI) / PI;
 				var vf = 2.0 * (inWidth / 4) * (PI/2 - phi) / PI;
-
 				var ui = floor(uf)|0, vi = floor(vf)|0;
-				var u2 = ui+1, v2 = vi+1;
-				var mu = uf-ui, nu = vf-vi;
 
-				var pA = ((ui % inWidth) + inWidth * clamp(vi, 0, inHeight-1)) << 2;
-				var pB = ((u2 % inWidth) + inWidth * clamp(vi, 0, inHeight-1)) << 2;
-				var pC = ((ui % inWidth) + inWidth * clamp(v2, 0, inHeight-1)) << 2;
-				var pD = ((u2 % inWidth) + inWidth * clamp(v2, 0, inHeight-1)) << 2;
+				if (smoothNearest) {
+					var inPos = ((ui % inWidth) + inWidth * clamp(vi, 0, inHeight-1)) << 2;
+					faceData[outPos + 0] = inData[inPos + 0] | 0;
+					faceData[outPos + 1] = inData[inPos + 1] | 0;
+					faceData[outPos + 2] = inData[inPos + 2] | 0;
+					faceData[outPos + 3] = inData[inPos + 3] | 0;
+				} else {
+					// bilinear blend
+					var u2 = ui+1, v2 = vi+1;
+					var mu = uf-ui, nu = vf-vi;
 
-				var rA = srgbToLinear(inData[pA+0]|0), gA = srgbToLinear(inData[pA+1]|0), bA = srgbToLinear(inData[pA+2]|0), aA = (inData[pA+3]|0)*(1.0 / 255.0);
-				var rB = srgbToLinear(inData[pB+0]|0), gB = srgbToLinear(inData[pB+1]|0), bB = srgbToLinear(inData[pB+2]|0), aB = (inData[pB+3]|0)*(1.0 / 255.0);
-				var rC = srgbToLinear(inData[pC+0]|0), gC = srgbToLinear(inData[pC+1]|0), bC = srgbToLinear(inData[pC+2]|0), aC = (inData[pC+3]|0)*(1.0 / 255.0);
-				var rD = srgbToLinear(inData[pD+0]|0), gD = srgbToLinear(inData[pD+1]|0), bD = srgbToLinear(inData[pD+2]|0), aD = (inData[pD+3]|0)*(1.0 / 255.0);
+					var pA = ((ui % inWidth) + inWidth * clamp(vi, 0, inHeight-1)) << 2;
+					var pB = ((u2 % inWidth) + inWidth * clamp(vi, 0, inHeight-1)) << 2;
+					var pC = ((ui % inWidth) + inWidth * clamp(v2, 0, inHeight-1)) << 2;
+					var pD = ((u2 % inWidth) + inWidth * clamp(v2, 0, inHeight-1)) << 2;
+					// Do the bilinear blend in linear space.
+					var rA = srgbToLinear(inData[pA+0]|0), gA = srgbToLinear(inData[pA+1]|0), bA = srgbToLinear(inData[pA+2]|0), aA = (inData[pA+3]|0)*(1.0 / 255.0);
+					var rB = srgbToLinear(inData[pB+0]|0), gB = srgbToLinear(inData[pB+1]|0), bB = srgbToLinear(inData[pB+2]|0), aB = (inData[pB+3]|0)*(1.0 / 255.0);
+					var rC = srgbToLinear(inData[pC+0]|0), gC = srgbToLinear(inData[pC+1]|0), bC = srgbToLinear(inData[pC+2]|0), aC = (inData[pC+3]|0)*(1.0 / 255.0);
+					var rD = srgbToLinear(inData[pD+0]|0), gD = srgbToLinear(inData[pD+1]|0), bD = srgbToLinear(inData[pD+2]|0), aD = (inData[pD+3]|0)*(1.0 / 255.0);
 
-				var r = (rA*(1.0-mu)*(1.0-nu) + rB*mu*(1.0-nu) + rC*(1.0-mu)*nu + rD*mu*nu);
-				var g = (gA*(1.0-mu)*(1.0-nu) + gB*mu*(1.0-nu) + gC*(1.0-mu)*nu + gD*mu*nu);
-				var b = (bA*(1.0-mu)*(1.0-nu) + bB*mu*(1.0-nu) + bC*(1.0-mu)*nu + bD*mu*nu);
-				var a = (aA*(1.0-mu)*(1.0-nu) + aB*mu*(1.0-nu) + aC*(1.0-mu)*nu + aD*mu*nu);
+					var r = (rA*(1.0-mu)*(1.0-nu) + rB*mu*(1.0-nu) + rC*(1.0-mu)*nu + rD*mu*nu);
+					var g = (gA*(1.0-mu)*(1.0-nu) + gB*mu*(1.0-nu) + gC*(1.0-mu)*nu + gD*mu*nu);
+					var b = (bA*(1.0-mu)*(1.0-nu) + bB*mu*(1.0-nu) + bC*(1.0-mu)*nu + bD*mu*nu);
+					var a = (aA*(1.0-mu)*(1.0-nu) + aB*mu*(1.0-nu) + aC*(1.0-mu)*nu + aD*mu*nu);
 
-				var outPos = (i + j*edge) << 2;
-
-				faceData[outPos+0] = linearToSRGB(r)|0;
-				faceData[outPos+1] = linearToSRGB(g)|0;
-				faceData[outPos+2] = linearToSRGB(b)|0;
-				faceData[outPos+3] = (a * 255.0)|0;
+					faceData[outPos+0] = linearToSRGB(r)|0;
+					faceData[outPos+1] = linearToSRGB(g)|0;
+					faceData[outPos+2] = linearToSRGB(b)|0;
+					faceData[outPos+3] = (a * 255.0)|0;
+				}
 			}
 		}
-		return facePixels
+		return facePixels;
 	}
 
-	// this function is a bit awkward so that eventually I can support doing this offline (note that
-	// this function doesn't depend on anything in the DOM).
 	function transformToCubeFaces(inPixels, facePixArray, options) {
 		if (facePixArray.length !== 6) {
 			throw new Error("facePixArray length must be 6!");
