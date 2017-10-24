@@ -25,7 +25,7 @@ var equirectToCubemapFaces = (function() {
 	}
 	var DEFAULT_OPTIONS = {
 		flipTheta: false,
-		interpolation: "bilinear",
+		interpolation: "bilinear"
 	};
 
 	function transformSingleFace(inPixels, faceIdx, facePixels, opts) {
@@ -90,20 +90,24 @@ var equirectToCubemapFaces = (function() {
 					var pB = ((u2 % inWidth) + inWidth * clamp(vi, 0, inHeight-1)) << 2;
 					var pC = ((ui % inWidth) + inWidth * clamp(v2, 0, inHeight-1)) << 2;
 					var pD = ((u2 % inWidth) + inWidth * clamp(v2, 0, inHeight-1)) << 2;
+					var aA = (inData[pA+3]|0)*(1.0 / 255.0)
+					var aB = (inData[pB+3]|0)*(1.0 / 255.0)
+					var aC = (inData[pC+3]|0)*(1.0 / 255.0)
+					var aD = (inData[pD+3]|0)*(1.0 / 255.0)
 					// Do the bilinear blend in linear space.
-					var rA = srgbToLinear(inData[pA+0]|0), gA = srgbToLinear(inData[pA+1]|0), bA = srgbToLinear(inData[pA+2]|0), aA = (inData[pA+3]|0)*(1.0 / 255.0);
-					var rB = srgbToLinear(inData[pB+0]|0), gB = srgbToLinear(inData[pB+1]|0), bB = srgbToLinear(inData[pB+2]|0), aB = (inData[pB+3]|0)*(1.0 / 255.0);
-					var rC = srgbToLinear(inData[pC+0]|0), gC = srgbToLinear(inData[pC+1]|0), bC = srgbToLinear(inData[pC+2]|0), aC = (inData[pC+3]|0)*(1.0 / 255.0);
-					var rD = srgbToLinear(inData[pD+0]|0), gD = srgbToLinear(inData[pD+1]|0), bD = srgbToLinear(inData[pD+2]|0), aD = (inData[pD+3]|0)*(1.0 / 255.0);
+					var rA = srgbToLinear(inData[pA+0]|0) * aA, gA = srgbToLinear(inData[pA+1]|0) * aA, bA = srgbToLinear(inData[pA+2]|0) * aA;
+					var rB = srgbToLinear(inData[pB+0]|0) * aB, gB = srgbToLinear(inData[pB+1]|0) * aB, bB = srgbToLinear(inData[pB+2]|0) * aB;
+					var rC = srgbToLinear(inData[pC+0]|0) * aC, gC = srgbToLinear(inData[pC+1]|0) * aC, bC = srgbToLinear(inData[pC+2]|0) * aC;
+					var rD = srgbToLinear(inData[pD+0]|0) * aD, gD = srgbToLinear(inData[pD+1]|0) * aD, bD = srgbToLinear(inData[pD+2]|0) * aD;
 
 					var r = (rA*(1.0-mu)*(1.0-nu) + rB*mu*(1.0-nu) + rC*(1.0-mu)*nu + rD*mu*nu);
 					var g = (gA*(1.0-mu)*(1.0-nu) + gB*mu*(1.0-nu) + gC*(1.0-mu)*nu + gD*mu*nu);
 					var b = (bA*(1.0-mu)*(1.0-nu) + bB*mu*(1.0-nu) + bC*(1.0-mu)*nu + bD*mu*nu);
 					var a = (aA*(1.0-mu)*(1.0-nu) + aB*mu*(1.0-nu) + aC*(1.0-mu)*nu + aD*mu*nu);
-
-					faceData[outPos+0] = linearToSRGB(r)|0;
-					faceData[outPos+1] = linearToSRGB(g)|0;
-					faceData[outPos+2] = linearToSRGB(b)|0;
+					var ia = 1.0 / a;
+					faceData[outPos+0] = linearToSRGB(r * ia)|0;
+					faceData[outPos+1] = linearToSRGB(g * ia)|0;
+					faceData[outPos+2] = linearToSRGB(b * ia)|0;
 					faceData[outPos+3] = (a * 255.0)|0;
 				}
 			}
